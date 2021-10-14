@@ -14,6 +14,7 @@
       "concepts/index",
       "concepts/terminology",
       "concepts/ui-user-interface",
+      "concepts/management-ui",
       "concepts/identity-schema",
       {
         "label": "Identity Credentials",
@@ -50,6 +51,7 @@
   },
   {
     "Guides": [
+      "guides/2fa",
       "guides/sign-in-with-github-google-facebook-linkedin",
       "guides/login-session",
       "guides/configuring-cookies",

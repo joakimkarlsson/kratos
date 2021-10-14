@@ -1,0 +1,1263 @@
+---
+id: ui-user-interface
+title: Customize User Interface
+---
+
+Ory Kratos is an HTTP API server and does not include a traditional HTML user
+interface (rendering forms such as "Login" or "Registration") in its code base.
+We provide several reference UI implementations which you can use to get started
+quickly, or which you can use as the basis for your own UI screens:
+
+- The [Ory Cloud Managed UI](https://playground.projects.oryapis.com/ui/welcome)
+  is available when you run Ory Kratos in Ory Cloud.
+- [React Native Reference Implementation](https://github.com/ory/kratos-selfservice-ui-react-native)
+- [NodeJS Reference Implementation](https://github.com/ory/kratos-selfservice-ui-node)
+- [React / SPA Reference Implementation](https://github.com/ory/react-nextjs-example)
+
+Ory Kratos' HTTP APIs make it easy and straight forward to write your own UI
+(e.g. "login" screen, "update profile settings", ...) in any programming
+languages and framework! It can be built in any programming language including
+Java, Node, or Python and can be run both a server or an end-user device for
+example a browser, or a mobile phone. Implementing your own UI is simple and
+straight forward. There is no complex authentication mechanism required and no
+need to worry about possible attack vectors such as CSRF or Session Attacks
+since Ory Kratos provides the preventive measures built in.
+
+Chapter [Self-Service Flows](../self-service.mdx) contains further information
+on APIs and flows related to the SSUI, and build self-service applications.
+
+## UI APIs
+
+To make UI customization easy, Ory Kratos prepares all the necessary data for
+forms that need to be shown during e.g. login, registration:
+
+```json5
+{
+  id: '9b527900-2199-4221-9252-7971b3362282',
+  type: 'browser',
+  expires_at: '2021-04-28T13:55:36.046466067Z',
+  issued_at: '2021-04-28T12:55:36.046466067Z',
+  ui: {
+    action: 'https://playground.projects.oryapis.com/api/kratos/public/self-service/settings?flow=9b527900-2199-4221-9252-7971b3362282',
+    method: 'POST',
+    nodes: [
+      {
+        type: 'input',
+        group: 'default',
+        attributes: {
+          node_type: 'input',
+          name: 'csrf_token',
+          type: 'hidden',
+          value: 'U3r/lgEfT8rA1Lg0Eeo06oGO8mX6T4TKoe/z7rbInhvYeacbRg0IW9zrqnpU1wmQJXKiekNzdLnypx5naHXoPg==',
+          required: true,
+          disabled: false
+        },
+        messages: null,
+        meta: {}
+      },
+      {
+        type: 'input',
+        group: 'profile',
+        attributes: {
+          node_type: 'input',
+          name: 'traits.email',
+          type: 'email',
+          value: 'foo@ory.sh',
+          disabled: false
+        },
+        messages: null,
+        meta: {
+          label: {
+            id: 1070002,
+            text: 'E-Mail',
+            type: 'info'
+          }
+        }
+      }
+      // ...
+    ]
+  }
+}
+```
+
+The above example would be rendered in HTML like this:
+
+```html
+<form
+  method="POST"
+  action="https://playground.projects.oryapis.com/api/kratos/public/self-service/settings?flow=9b527900-2199-4221-9252-7971b3362282"
+>
+  <!-- this is the first node -->
+  <input
+    type="hidden"
+    name="csrf_token"
+    value="U3r/lgEfT8rA1Lg0Eeo06oGO8mX6T4TKoe/z7rbInhvYeacbRg0IW9zrqnpU1wmQJXKiekNzdLnypx5naHXoPg=="
+    required
+  />
+
+  <!-- this is the second node -->
+  <input type="email" name="traits.email" value="foo@ory.sh" />
+  <label for="traits.email">E-Mail</label>
+</form>
+```
+
+As you can see, the JSON can be mapped almost 1:1 to HTML! This method makes it
+easy for you to implement complex forms without having to deal with state
+management, form validation, and more!
+
+### UI Node Groups
+
+Nodes are grouped (using the `group` key) based on the source that generated the
+node. Sources are the different methods such as "password" ("Sign in/up with ID
+& password"), "oidc" (Social Sign In), "link" (Password reset and email
+verification), "profile" ("Update your profile") and the "default" group which
+typically contains the CSRF token.
+
+You can use the node group to filter out items, re-arrange them, render them
+differently - up to you!
+
+### UI Node Types
+
+UI Nodes can have several types!
+
+#### UI Text Nodes
+
+#### UI Script Nodes
+
+#### UI Anchor Nodes
+
+#### UI Image Nodes
+
+#### UI Input Nodes
+
+The first node type is the `input` type:
+
+```json
+{
+  "type": "input",
+  "group": "default",
+  "attributes": {
+    "name": "csrf_token",
+    "type": "hidden",
+    "node_type": "input",
+    "value": "U3r/lgEfT8rA1Lg0Eeo06oGO8mX6T4TKoe/z7rbInhvYeacbRg0IW9zrqnpU1wmQJXKiekNzdLnypx5naHXoPg==",
+    "required": true,
+    "disabled": false
+  },
+  "messages": null,
+  "meta": {}
+}
+```
+
+It contains different attributes which you can map 1:1 to an HTML form:
+
+```html
+<input
+  type="hidden"
+  name="csrf_token"
+  value="U3r/lgEfT8rA1Lg0Eeo06oGO8mX6T4TKoe/z7rbInhvYeacbRg0IW9zrqnpU1wmQJXKiekNzdLnypx5naHXoPg=="
+  required
+/>
+```
+
+Similarly, other form input types can be sent:
+
+```json
+[
+  {
+    "type": "input",
+    "group": "profile",
+    "attributes": {
+      "name": "traits.email",
+      "type": "email",
+      "value": "foo@ory.sh",
+      "disabled": false
+    },
+    "messages": null,
+    "meta": {
+      "label": {
+        "id": 1070002,
+        "text": "E-Mail",
+        "type": "info"
+      }
+    }
+  },
+  {
+    "type": "input",
+    "group": "profile",
+    "attributes": {
+      "name": "method",
+      "type": "submit",
+      "value": "profile",
+      "disabled": false
+    },
+    "messages": null,
+    "meta": {
+      "label": {
+        "id": 1070003,
+        "text": "Save",
+        "type": "info"
+      }
+    }
+  }
+]
+```
+
+As you can see, some fields even include `meta.label` information which you can
+use for the labels:
+
+```html
+<fieldset>
+  <input type="email" name="traits.email" value="foo@ory.sh" />
+  <span>E-Mail</span>
+</fieldset>
+<fieldset>
+  <input type="submit" name="method" value="profile" />
+  <span>Save</span>
+</fieldset>
+```
+
+### Node Order and Labels
+
+For all traits, the labels and orders are taken from the Identity Schema. An
+Identity Schema such as
+
+```json
+{
+  "$id": "https://schemas.ory.sh/presets/kratos/quickstart/email-password/identity.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Person",
+  "type": "object",
+  "properties": {
+    "traits": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "title": "E-Mail",
+          "minLength": 3,
+          "ory.sh/kratos": {
+            "credentials": {
+              "password": {
+                "identifier": true
+              }
+            }
+          }
+        },
+        "website": {
+          "title": "Website",
+          "type": "string",
+          "format": "uri",
+          "minLength": 10
+        },
+        "consent": {
+          "title": "Consent",
+          "const": true
+        },
+        "newsletter": {
+          "title": "Newsletter",
+          "type": "boolean"
+        }
+      },
+      "required": ["email", "website"],
+      "additionalProperties": false
+    }
+  }
+}
+```
+
+will generate the following fields - take note that the order of the JSON Schema
+affects the order of the nodes:
+
+```json
+[
+  {
+    "type": "input",
+    "group": "profile",
+    "attributes": {
+      "name": "traits.email",
+      "type": "email",
+      "value": "foo@ory.sh",
+      "disabled": false
+    },
+    "messages": null,
+    "meta": {
+      "label": {
+        "id": 1070002,
+        "text": "E-Mail",
+        "type": "info"
+      }
+    }
+  },
+  {
+    "type": "input",
+    "group": "profile",
+    "attributes": {
+      "name": "traits.name.first",
+      "type": "text",
+      "value": "Foo",
+      "disabled": false
+    },
+    "messages": null,
+    "meta": {
+      "label": {
+        "id": 1070002,
+        "text": "First Name",
+        "type": "info"
+      }
+    }
+  },
+  {
+    "type": "input",
+    "group": "profile",
+    "attributes": {
+      "name": "traits.name.last",
+      "type": "text",
+      "value": "Bar",
+      "disabled": false
+    },
+    "messages": null,
+    "meta": {
+      "label": {
+        "id": 1070002,
+        "text": "Last Name",
+        "type": "info"
+      }
+    }
+  },
+  {
+    "type": "input",
+    "group": "profile",
+    "attributes": {
+      "name": "method",
+      "type": "submit",
+      "value": "profile",
+      "disabled": false
+    },
+    "messages": null,
+    "meta": {
+      "label": {
+        "id": 1070003,
+        "text": "Save",
+        "type": "info"
+      }
+    }
+  }
+]
+```
+
+Generally, submit buttons are the last node in a group. If you wish to have more
+flexibility with regards to order or labeling the best option is to implement
+this in your UI using map, filter, and other JSON transformation functions.
+
+### Titles, Labels & Validation Messages
+
+Ory Kratos helps users understand what is happening by providing messages that
+explain what went wrong or what needs to be done. Examples are "The provided
+credentials are invalid", "Missing property email" and similar.
+
+Typically login, registration, settings, ... flows include such messages on
+different levels:
+
+1. At the root level, indicating that the message affects the whole request
+   (e.g. request expired)
+2. At the method (password, oidc, profile) level, indicating that the message
+   affects a specific method / form.
+3. At the field level, indicating that the message affects a form field (e.g.
+   validation errors).
+
+Each message has a layout of:
+
+```json5
+{
+  id: 1234,
+  // This ID will not change and can be used to translate the message or use your own message content.
+  text: 'Some default text',
+  // A default text in english that you can display if you do not want to customize the message.
+  context: {}
+  // A JSON object which may contain additional fields such as `expires_at`. This is helpful if you want to craft your own messages.
+}
+```
+
+The message ID is a 7-digit number (`xyyzzzz`) where
+
+- `x` is the message type which is either `1` for an info message (e.g.
+  `1020000`), `4` (e.g. `4020000`) for an input validation error message, and
+  `5` (e.g. `5020000`) for a generic error message.
+- `yy` is the module or flow this error references and can be:
+- `01` for login messages (e.g. `1010000`)
+- `02` for logout messages (e.g. `1020000`)
+- `03` for multi-factor authentication messages (e.g. `1030000`)
+- `04` for registration messages (e.g. `1040000`)
+- `05` for settings messages (e.g. `1050000`)
+- `06` for account recovery messages (e.g. `1060000`)
+- `07` for email/phone verification messages (e.g. `1070000`)
+- `zzzz` is the message ID and typically starts at `0001`. For example, message
+  ID `4070001` (`4` for input validation error, `07` for verification, `0001`
+  for the concrete message) is:
+  `The verification code has expired or was otherwise invalid. Please request another code.`.
+
+#### UI Message Codes
+
+UI Messages are always presented as the following JSON
+
+```json5
+{
+  id: 1234, // A unique, fixed number
+  text: '...',
+  type: '...', // Usually "error" or "info"
+  context: {
+    // Additional, contextual information
+  }
+}
+```
+
+for the values of these fields, please check the list below.
+
+<!--
+
+!!! WARNING  !!!
+
+The table below is autogenerated using Ory Kratos'
+
+!!! WARNING  !!!
+
+-->
+
+<!-- START MESSAGE TABLE -->
+
+###### Sign in (1010001)
+
+```json
+{
+  "id": 1010001,
+  "text": "Sign in",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Sign in with {provider} (1010002)
+
+```json
+{
+  "id": 1010002,
+  "text": "Sign in with {provider}",
+  "type": "info",
+  "context": {
+    "provider": "{provider}"
+  }
+}
+```
+
+###### Please confirm this action by verifying that it is you. (1010003)
+
+```json
+{
+  "id": 1010003,
+  "text": "Please confirm this action by verifying that it is you.",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Please complete the second authentication challenge. (1010004)
+
+```json
+{
+  "id": 1010004,
+  "text": "Please complete the second authentication challenge.",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Verify (1010005)
+
+```json
+{
+  "id": 1010005,
+  "text": "Verify",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Authentication code (1010006)
+
+```json
+{
+  "id": 1010006,
+  "text": "Authentication code",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Backup recovery code (1010007)
+
+```json
+{
+  "id": 1010007,
+  "text": "Backup recovery code",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Use security key (1010008)
+
+```json
+{
+  "id": 1010008,
+  "text": "Use security key",
+  "type": "info"
+}
+```
+
+###### Use Authenticator (1010009)
+
+```json
+{
+  "id": 1010009,
+  "text": "Use Authenticator",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Use backup recovery code (1010010)
+
+```json
+{
+  "id": 1010010,
+  "text": "Use backup recovery code",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Sign up (1040001)
+
+```json
+{
+  "id": 1040001,
+  "text": "Sign up",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Sign up with {provider} (1040002)
+
+```json
+{
+  "id": 1040002,
+  "text": "Sign up with {provider}",
+  "type": "info",
+  "context": {
+    "provider": "{provider}"
+  }
+}
+```
+
+###### Continue (1040003)
+
+```json
+{
+  "id": 1040003,
+  "text": "Continue",
+  "type": "info"
+}
+```
+
+###### Your changes have been saved! (1050001)
+
+```json
+{
+  "id": 1050001,
+  "text": "Your changes have been saved!",
+  "type": "info"
+}
+```
+
+###### Link {provider} (1050002)
+
+```json
+{
+  "id": 1050002,
+  "text": "Link {provider}",
+  "type": "info",
+  "context": {
+    "provider": "{provider}"
+  }
+}
+```
+
+###### Unlink {provider} (1050003)
+
+```json
+{
+  "id": 1050003,
+  "text": "Unlink {provider}",
+  "type": "info",
+  "context": {
+    "provider": "{provider}"
+  }
+}
+```
+
+###### Unlink TOTP Authenticator App (1050004)
+
+```json
+{
+  "id": 1050004,
+  "text": "Unlink TOTP Authenticator App",
+  "type": "info"
+}
+```
+
+###### Authenticator app QR code (1050005)
+
+```json
+{
+  "id": 1050005,
+  "text": "Authenticator app QR code",
+  "type": "info"
+}
+```
+
+###### {secret} (1050006)
+
+```json
+{
+  "id": 1050006,
+  "text": "{secret}",
+  "type": "info",
+  "context": {
+    "secret": "{secret}"
+  }
+}
+```
+
+###### This is your authenticator app secret. Use it if you can not scan the QR code. (1050006)
+
+```json
+{
+  "id": 1050006,
+  "text": "This is your authenticator app secret. Use it if you can not scan the QR code.",
+  "type": "info"
+}
+```
+
+###### Reveal backup recovery codes (1050007)
+
+```json
+{
+  "id": 1050007,
+  "text": "Reveal backup recovery codes",
+  "type": "info"
+}
+```
+
+###### Generate new backup recovery codes (1050008)
+
+```json
+{
+  "id": 1050008,
+  "text": "Generate new backup recovery codes",
+  "type": "info"
+}
+```
+
+###### {secret} (1050009)
+
+```json
+{
+  "id": 1050009,
+  "text": "{secret}",
+  "type": "info",
+  "context": {
+    "secret": "{secret}"
+  }
+}
+```
+
+###### These are your back up recovery codes. Please keep them in a safe place! (1050010)
+
+```json
+{
+  "id": 1050010,
+  "text": "These are your back up recovery codes. Please keep them in a safe place!",
+  "type": "info"
+}
+```
+
+###### Confirm backup recovery codes (1050011)
+
+```json
+{
+  "id": 1050011,
+  "text": "Confirm backup recovery codes",
+  "type": "info"
+}
+```
+
+###### Add security key (1050012)
+
+```json
+{
+  "id": 1050012,
+  "text": "Add security key",
+  "type": "info"
+}
+```
+
+###### Remove security key "{name}" (1050012)
+
+```json
+{
+  "id": 1050012,
+  "text": "Remove security key \"{name}\"",
+  "type": "info",
+  "context": {
+    "display_name": "{name}",
+    "added_at": "2021-10-14T16:41:30.331628+02:00"
+  }
+}
+```
+
+###### Name of the security key (1050013)
+
+```json
+{
+  "id": 1050013,
+  "text": "Name of the security key",
+  "type": "info"
+}
+```
+
+###### Secret was used at 2021-10-14 16:41:30.331628 +0200 CEST m=-0.259464372 (1050014)
+
+```json
+{
+  "id": 1050014,
+  "text": "Secret was used at 2021-10-14 16:41:30.331628 +0200 CEST m=-0.259464372",
+  "type": "info",
+  "context": {
+    "used_at": "2021-10-14T16:41:30.331628+02:00"
+  }
+}
+```
+
+###### {code-1}, {code-2} (1050015)
+
+```json
+{
+  "id": 1050015,
+  "text": "{code-1}, {code-2}",
+  "type": "info",
+  "context": {
+    "secrets": [
+      {
+        "id": 1050009,
+        "text": "{code}",
+        "type": "info",
+        "context": {
+          "secret": "{code}"
+        }
+      },
+      {
+        "id": 1050014,
+        "text": "Secret was used at 2021-10-14 16:41:30.331628 +0200 CEST m=-0.259464372",
+        "type": "info",
+        "context": {
+          "used_at": "2021-10-14T16:41:30.331628+02:00"
+        }
+      }
+    ]
+  }
+}
+```
+
+###### Disable this method (1050016)
+
+```json
+{
+  "id": 1050016,
+  "text": "Disable this method",
+  "type": "info"
+}
+```
+
+###### You successfully recovered your account. Please change your password or set up an alternative login method (e.g. social sign in) within the next 1.00 minutes. (1060001)
+
+```json
+{
+  "id": 1060001,
+  "text": "You successfully recovered your account. Please change your password or set up an alternative login method (e.g. social sign in) within the next 1.00 minutes.",
+  "type": "info",
+  "context": {
+    "privilegedSessionExpiresAt": "2021-10-14T16:42:31.331629+02:00"
+  }
+}
+```
+
+###### You successfully verified your email address. (1060001)
+
+```json
+{
+  "id": 1060001,
+  "text": "You successfully verified your email address.",
+  "type": "info"
+}
+```
+
+###### An email containing a recovery link has been sent to the email address you provided. (1060002)
+
+```json
+{
+  "id": 1060002,
+  "text": "An email containing a recovery link has been sent to the email address you provided.",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### An email containing a verification link has been sent to the email address you provided. (1070001)
+
+```json
+{
+  "id": 1070001,
+  "text": "An email containing a verification link has been sent to the email address you provided.",
+  "type": "info",
+  "context": {}
+}
+```
+
+###### Password (1070001)
+
+```json
+{
+  "id": 1070001,
+  "text": "Password",
+  "type": "info"
+}
+```
+
+###### {title} (1070002)
+
+```json
+{
+  "id": 1070002,
+  "text": "{title}",
+  "type": "info"
+}
+```
+
+###### Save (1070003)
+
+```json
+{
+  "id": 1070003,
+  "text": "Save",
+  "type": "info"
+}
+```
+
+###### ID (1070004)
+
+```json
+{
+  "id": 1070004,
+  "text": "ID",
+  "type": "info"
+}
+```
+
+###### Submit (1070005)
+
+```json
+{
+  "id": 1070005,
+  "text": "Submit",
+  "type": "info"
+}
+```
+
+###### Verify code (1070006)
+
+```json
+{
+  "id": 1070006,
+  "text": "Verify code",
+  "type": "info"
+}
+```
+
+###### {reason} (4000001)
+
+```json
+{
+  "id": 4000001,
+  "text": "{reason}",
+  "type": "error"
+}
+```
+
+###### Property {field} is missing. (4000002)
+
+```json
+{
+  "id": 4000002,
+  "text": "Property {field} is missing.",
+  "type": "error",
+  "context": {
+    "property": "{field}"
+  }
+}
+```
+
+###### Length must be >= 1, but got 2. (4000003)
+
+```json
+{
+  "id": 4000003,
+  "text": "Length must be \u003e= 1, but got 2.",
+  "type": "error",
+  "context": {
+    "actual_length": 2,
+    "expected_length": 1
+  }
+}
+```
+
+###### "{value}" is not valid "{format}" (4000004)
+
+```json
+{
+  "id": 4000004,
+  "text": "\"{value}\" is not valid \"{format}\"",
+  "type": "error",
+  "context": {
+    "expected_format": "{format}",
+    "actual_value": "{value}"
+  }
+}
+```
+
+###### The password can not be used because {reason}. (4000005)
+
+```json
+{
+  "id": 4000005,
+  "text": "The password can not be used because {reason}.",
+  "type": "error",
+  "context": {
+    "reason": "{reason}"
+  }
+}
+```
+
+###### The provided credentials are invalid, check for spelling mistakes in your password or username, email address, or phone number. (4000006)
+
+```json
+{
+  "id": 4000006,
+  "text": "The provided credentials are invalid, check for spelling mistakes in your password or username, email address, or phone number.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### An account with the same identifier (email, phone, username, ...) exists already. (4000007)
+
+```json
+{
+  "id": 4000007,
+  "text": "An account with the same identifier (email, phone, username, ...) exists already.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### The provided authentication code is invalid, please try again. (4000008)
+
+```json
+{
+  "id": 4000008,
+  "text": "The provided authentication code is invalid, please try again.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### Could not find any login identifiers. Did you forget to set them? (4000009)
+
+```json
+{
+  "id": 4000009,
+  "text": "Could not find any login identifiers. Did you forget to set them?",
+  "type": "error"
+}
+```
+
+###### Account not active yet. Did you forget to verify your email address? (4000010)
+
+```json
+{
+  "id": 4000010,
+  "text": "Account not active yet. Did you forget to verify your email address?",
+  "type": "error"
+}
+```
+
+###### You have no TOTP device set up. (4000011)
+
+```json
+{
+  "id": 4000011,
+  "text": "You have no TOTP device set up.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### The backup recovery code is not valid. (4000012)
+
+```json
+{
+  "id": 4000012,
+  "text": "The backup recovery code is not valid.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### This backup recovery code has already been used. (4000012)
+
+```json
+{
+  "id": 4000012,
+  "text": "This backup recovery code has already been used.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### You have no WebAuthn device set up. (4000013)
+
+```json
+{
+  "id": 4000013,
+  "text": "You have no WebAuthn device set up.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### You have no backup recovery codes set up. (4000014)
+
+```json
+{
+  "id": 4000014,
+  "text": "You have no backup recovery codes set up.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### The login flow expired 0.02 minutes ago, please try again. (4010001)
+
+```json
+{
+  "id": 4010001,
+  "text": "The login flow expired 0.02 minutes ago, please try again.",
+  "type": "error",
+  "context": {
+    "expired_at": "2021-10-14T16:41:32.331772+02:00"
+  }
+}
+```
+
+###### Could not find a strategy to log you in with. Did you fill out the form correctly? (4010002)
+
+```json
+{
+  "id": 4010002,
+  "text": "Could not find a strategy to log you in with. Did you fill out the form correctly?",
+  "type": "error"
+}
+```
+
+###### Could not find a strategy to sign you up with. Did you fill out the form correctly? (4010003)
+
+```json
+{
+  "id": 4010003,
+  "text": "Could not find a strategy to sign you up with. Did you fill out the form correctly?",
+  "type": "error"
+}
+```
+
+###### Could not find a strategy to update your settings. Did you fill out the form correctly? (4010004)
+
+```json
+{
+  "id": 4010004,
+  "text": "Could not find a strategy to update your settings. Did you fill out the form correctly?",
+  "type": "error"
+}
+```
+
+###### Could not find a strategy to recover your account with. Did you fill out the form correctly? (4010005)
+
+```json
+{
+  "id": 4010005,
+  "text": "Could not find a strategy to recover your account with. Did you fill out the form correctly?",
+  "type": "error"
+}
+```
+
+###### Could not find a strategy to verify your account with. Did you fill out the form correctly? (4010006)
+
+```json
+{
+  "id": 4010006,
+  "text": "Could not find a strategy to verify your account with. Did you fill out the form correctly?",
+  "type": "error"
+}
+```
+
+###### The registration flow expired 0.02 minutes ago, please try again. (4040001)
+
+```json
+{
+  "id": 4040001,
+  "text": "The registration flow expired 0.02 minutes ago, please try again.",
+  "type": "error",
+  "context": {
+    "expired_at": "2021-10-14T16:41:32.331777+02:00"
+  }
+}
+```
+
+###### The settings flow expired 0.02 minutes ago, please try again. (4050001)
+
+```json
+{
+  "id": 4050001,
+  "text": "The settings flow expired 0.02 minutes ago, please try again.",
+  "type": "error",
+  "context": {
+    "expired_at": "2021-10-14T16:41:32.33164+02:00"
+  }
+}
+```
+
+###### The request was already completed successfully and can not be retried. (4060001)
+
+```json
+{
+  "id": 4060001,
+  "text": "The request was already completed successfully and can not be retried.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### The recovery flow reached a failure state and must be retried. (4060002)
+
+```json
+{
+  "id": 4060002,
+  "text": "The recovery flow reached a failure state and must be retried.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### The recovery token is invalid or has already been used. Please retry the flow. (4060004)
+
+```json
+{
+  "id": 4060004,
+  "text": "The recovery token is invalid or has already been used. Please retry the flow.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### The recovery flow expired 0.02 minutes ago, please try again. (4060005)
+
+```json
+{
+  "id": 4060005,
+  "text": "The recovery flow expired 0.02 minutes ago, please try again.",
+  "type": "error",
+  "context": {
+    "expired_at": "2021-10-14T16:41:32.331778+02:00"
+  }
+}
+```
+
+###### The verification token is invalid or has already been used. Please retry the flow. (4070001)
+
+```json
+{
+  "id": 4070001,
+  "text": "The verification token is invalid or has already been used. Please retry the flow.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### The request was already completed successfully and can not be retried. (4070002)
+
+```json
+{
+  "id": 4070002,
+  "text": "The request was already completed successfully and can not be retried.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### The verification flow reached a failure state and must be retried. (4070003)
+
+```json
+{
+  "id": 4070003,
+  "text": "The verification flow reached a failure state and must be retried.",
+  "type": "error",
+  "context": {}
+}
+```
+
+###### The verification flow expired -0.02 minutes ago, please try again. (4070005)
+
+```json
+{
+  "id": 4070005,
+  "text": "The verification flow expired -0.02 minutes ago, please try again.",
+  "type": "error",
+  "context": {
+    "expired_at": "2021-10-14T16:41:30.331749+02:00"
+  }
+}
+```
+
+###### {reason} (5000001)
+
+```json
+{
+  "id": 5000001,
+  "text": "{reason}",
+  "type": "error",
+  "context": {}
+}
+```
+
+<!-- END MESSAGE TABLE -->
