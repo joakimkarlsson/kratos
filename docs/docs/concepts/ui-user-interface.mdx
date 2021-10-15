@@ -6,7 +6,7 @@ title: Customize User Interface
 Ory Kratos is an HTTP API server and does not include a traditional HTML user
 interface (rendering forms such as "Login" or "Registration") in its code base.
 We provide several reference UI implementations which you can use to get started
-quickly, or which you can use as the basis for your own UI screens:
+quickly, or as the basis for your own UI:
 
 - The [Ory Cloud Managed UI](https://playground.projects.oryapis.com/ui/welcome)
   is available when you run Ory Kratos in Ory Cloud.
@@ -26,7 +26,11 @@ since Ory Kratos provides the preventive measures built in.
 Chapter [Self-Service Flows](../self-service.mdx) contains further information
 on APIs and flows related to the SSUI, and build self-service applications.
 
-## UI APIs
+import CodeFromRemote from '@theme/CodeFromRemote'
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+## UI Payloads
 
 To make UI customization easy, Ory Kratos prepares all the necessary data for
 forms that need to be shown during e.g. login, registration:
@@ -105,7 +109,7 @@ As you can see, the JSON can be mapped almost 1:1 to HTML! This method makes it
 easy for you to implement complex forms without having to deal with state
 management, form validation, and more!
 
-### UI Node Groups
+## UI Node Groups
 
 Nodes are grouped (using the `group` key) based on the source that generated the
 node. Sources are the different methods such as "password" ("Sign in/up with ID
@@ -116,19 +120,300 @@ typically contains the CSRF token.
 You can use the node group to filter out items, re-arrange them, render them
 differently - up to you!
 
-### UI Node Types
+## UI Node Types
 
 UI Nodes can have several types!
 
-#### UI Text Nodes
+### UI Script Nodes
 
-#### UI Script Nodes
+The `script` node type is primarily used to load required scripts for WebAuthn!
 
-#### UI Anchor Nodes
+```json
+{
+  "type": "script",
+  "group": "webauthn",
+  "attributes": {
+    "src": "http://localhost:4455/.well-known/ory/webauthn.js",
+    "async": true,
+    "referrerpolicy": "no-referrer",
+    "crossorigin": "anonymous",
+    "integrity": "sha512-E3ctShTQEYTkfWrjztRCbP77lN7L0jJC2IOd6j8vqUKslvqhX/Ho3QxlQJIeTI78krzAWUQlDXd9JQ0PZlKhzQ==",
+    "type": "text/javascript",
+    "id": "webauthn_script",
+    "node_type": "script"
+  },
+  "messages": [],
+  "meta": {}
+}
+```
 
-#### UI Image Nodes
+Rendering it is straight forward if you are on the server-side:
 
-#### UI Input Nodes
+<CodeFromRemote
+  lang="pug"
+  title="https://github.com/ory/kratos-selfservice-ui-node/blob/master/views/partials/ui_node_script.hbs"
+  src="https://raw.githubusercontent.com/ory/kratos-selfservice-ui-node/master/views/partials/ui_node_script.hbs"
+/>
+
+For single-page apps, you might need a different set up to load the script
+asynchronously. In ReactJS you might want to do something like the following:
+
+<CodeFromRemote
+  lang="tsx"
+  title="https://github.com/ory/kratos-react-nextjs-ui/blob/master/pkg/ui/NodeScript.tsx"
+  src="https://raw.githubusercontent.com/ory/kratos-react-nextjs-ui/master/pkg/ui/NodeScript.tsx"
+/>
+
+### UI Anchor Nodes
+
+Nodes of type `anchor` are currently not used in Ory Kratos, but we have them
+around in case they are needed at a later stage!
+
+<CodeFromRemote
+  lang="pug"
+  title="https://github.com/ory/kratos-selfservice-ui-node/blob/master/views/partials/ui_node_anchor.hbs"
+  src="https://raw.githubusercontent.com/ory/kratos-selfservice-ui-node/master/views/partials/ui_node_anchor.hbs"
+/>
+
+### UI Image Nodes
+
+Nodes of type `image` are used as QR codes, for example.
+
+```json
+{
+  "type": "img",
+  "group": "totp",
+  "attributes": {
+    "src": "data:image/png;base64,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",
+    "id": "totp_qr",
+    "width": 256,
+    "height": 256,
+    "node_type": "img"
+  },
+  "messages": [],
+  "meta": {
+    "label": {
+      "id": 1050005,
+      "text": "Authenticator app QR code",
+      "type": "info"
+    }
+  }
+}
+```
+
+![QR Code](../images/totp/qr.png)
+
+Here is an example of implementing an `image` node in handlebars:
+
+<CodeFromRemote
+  lang="pug"
+  title="https://github.com/ory/kratos-selfservice-ui-node/blob/master/views/partials/ui_node_image.hbs"
+  src="https://raw.githubusercontent.com/ory/kratos-selfservice-ui-node/master/views/partials/ui_node_image.hbs"
+/>
+
+Here is an example of implementing an `image` node in ReactJS:
+
+<CodeFromRemote
+  lang="tsx"
+  title="https://github.com/ory/kratos-react-nextjs-ui/blob/master/pkg/ui/NodeImage.tsx"
+  src="https://raw.githubusercontent.com/ory/kratos-react-nextjs-ui/master/pkg/ui/NodeImage.tsx"
+/>
+
+### UI Text Nodes
+
+Nodes of type `text` are commonly used to display secrets (e.g. lookup secrets).
+
+![Lookup Secret](../images/text-node-1.png)
+
+![TOTP Secret](../images/text-node-2.png)
+
+Their JSON usually contains a bit of contextual information.
+
+<Tabs
+  defaultValue="totp"
+  values={[
+    {label: 'TOTP Example', value: 'totp'},
+    {label: 'Lookup Secret Example', value: 'lookup'},
+  ]}>
+  <TabItem value="totp">
+
+```json
+{
+  "type": "text",
+  "group": "totp",
+  "attributes": {
+    "text": {
+      "id": 1050006,
+      "text": "GLAS5YHAJ6V5LT3N7AU2R4AWU6SYOCHS",
+      "type": "info",
+      "context": {
+        "secret": "GLAS5YHAJ6V5LT3N7AU2R4AWU6SYOCHS"
+      }
+    },
+    "id": "totp_secret_key",
+    "node_type": "text"
+  },
+  "messages": [],
+  "meta": {
+    "label": {
+      "id": 1050006,
+      "text": "This is your authenticator app secret. Use it if you can not scan the QR code.",
+      "type": "info"
+    }
+  }
+}
+```
+
+  </TabItem>
+  <TabItem value="lookup">
+
+```json
+{
+  "type": "text",
+  "group": "lookup_secret",
+  "attributes": {
+    "text": {
+      "id": 1050015,
+      "text": "8qhkibka, 4m4m0l81, xh7ji7xk, cgi8xfwa, uim1dztu, 1jsjkk2i, 3nw4o5fr, lg77u7rr, hhwmz3rx, kx1cx840, thc7xl8t, osgqai15",
+      "type": "info",
+      "context": {
+        "secrets": [
+          {
+            "id": 1050009,
+            "text": "8qhkibka",
+            "type": "info",
+            "context": {
+              "secret": "8qhkibka"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "4m4m0l81",
+            "type": "info",
+            "context": {
+              "secret": "4m4m0l81"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "xh7ji7xk",
+            "type": "info",
+            "context": {
+              "secret": "xh7ji7xk"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "cgi8xfwa",
+            "type": "info",
+            "context": {
+              "secret": "cgi8xfwa"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "uim1dztu",
+            "type": "info",
+            "context": {
+              "secret": "uim1dztu"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "1jsjkk2i",
+            "type": "info",
+            "context": {
+              "secret": "1jsjkk2i"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "3nw4o5fr",
+            "type": "info",
+            "context": {
+              "secret": "3nw4o5fr"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "lg77u7rr",
+            "type": "info",
+            "context": {
+              "secret": "lg77u7rr"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "hhwmz3rx",
+            "type": "info",
+            "context": {
+              "secret": "hhwmz3rx"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "kx1cx840",
+            "type": "info",
+            "context": {
+              "secret": "kx1cx840"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "thc7xl8t",
+            "type": "info",
+            "context": {
+              "secret": "thc7xl8t"
+            }
+          },
+          {
+            "id": 1050009,
+            "text": "osgqai15",
+            "type": "info",
+            "context": {
+              "secret": "osgqai15"
+            }
+          }
+        ]
+      }
+    },
+    "id": "lookup_secret_codes",
+    "node_type": "text"
+  },
+  "messages": [],
+  "meta": {
+    "label": {
+      "id": 1050010,
+      "text": "These are your back up recovery codes. Please keep them in a safe place!",
+      "type": "info"
+    }
+  }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+Rendering the text component is usually a bit more complex, as you most likely
+want a bit of custom formatting. By the way, you can find an overview of all
+message IDs used here in the conditionals at the end of this page! In
+handlebars, this could look as follows:
+
+<CodeFromRemote
+  lang="pug"
+  title="https://github.com/ory/kratos-selfservice-ui-node/blob/master/views/partials/ui_node_text.hbs"
+  src="https://raw.githubusercontent.com/ory/kratos-selfservice-ui-node/master/views/partials/ui_node_text.hbs"
+/>
+
+In ReactJS, you will most likely find similar if statements on the message IDs.
+
+<CodeFromRemote
+  lang="tsx"
+  title="https://github.com/ory/kratos-react-nextjs-ui/blob/master/pkg/ui/NodeText.tsx"
+  src="https://raw.githubusercontent.com/ory/kratos-react-nextjs-ui/master/pkg/ui/NodeText.tsx"
+/>
+
+### UI Input Nodes
 
 The first node type is the `input` type:
 
@@ -148,6 +433,12 @@ The first node type is the `input` type:
   "meta": {}
 }
 ```
+
+#### Button Input Node
+
+#### Hidden Input Node
+
+#### Text Input Node
 
 It contains different attributes which you can map 1:1 to an HTML form:
 
@@ -217,7 +508,7 @@ use for the labels:
 </fieldset>
 ```
 
-### Node Order and Labels
+## Node Order and Labels
 
 For all traits, the labels and orders are taken from the Identity Schema. An
 Identity Schema such as
@@ -351,7 +642,7 @@ Generally, submit buttons are the last node in a group. If you wish to have more
 flexibility with regards to order or labeling the best option is to implement
 this in your UI using map, filter, and other JSON transformation functions.
 
-### Titles, Labels & Validation Messages
+## Titles, Labels & Validation Messages
 
 Ory Kratos helps users understand what is happening by providing messages that
 explain what went wrong or what needs to be done. Examples are "The provided
@@ -398,7 +689,19 @@ The message ID is a 7-digit number (`xyyzzzz`) where
   for the concrete message) is:
   `The verification code has expired or was otherwise invalid. Please request another code.`.
 
-#### UI Message Codes
+## UI Error Codes
+
+When building a single page app, or a native app, Ory Kratos will respond with
+errors in some cases. You can find an exemplary error handling logic in our
+ReactJS reference implementation:
+
+<CodeFromRemote
+  lang="tsx"
+  title="https://github.com/ory/kratos-react-nextjs-ui/blob/master/pkg/errors.tsx"
+  src="https://raw.githubusercontent.com/ory/kratos-react-nextjs-ui/master/pkg/errors.tsx"
+/>
+
+## UI Message Codes
 
 UI Messages are always presented as the following JSON
 
@@ -415,15 +718,12 @@ UI Messages are always presented as the following JSON
 
 for the values of these fields, please check the list below.
 
-<!--
+:::note
 
-!!! WARNING  !!!
+The section below is auto-generated. Changing it has no effect as any changes
+will be overwritten!
 
-The table below is autogenerated using Ory Kratos'
-
-!!! WARNING  !!!
-
--->
+:::
 
 <!-- START MESSAGE TABLE -->
 
